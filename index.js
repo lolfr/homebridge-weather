@@ -93,6 +93,14 @@ WeatherAccessory.prototype =
                 }.bind(this));
             }
 
+            if (this.type === "weather") {
+                this.getStateWeather(function (error, value) {
+                    if (!error && value != null) {
+                        humidityService.setCharacteristic(Characteristic.CurrentRelativeHumidity, value);
+                    }
+                }.bind(this));
+            }
+
             if (this.type === "sun") {
                 this.getStateSun(function (error, value) {
                     if (!error && value != null) {
@@ -205,6 +213,37 @@ WeatherAccessory.prototype =
             }
         },
 
+        getStateMaincond: function (callback) {
+            // Only fetch new data once per minute
+            if (!this.cachedWeatherObj || this.pollingInterval > 0 || this.lastupdate + 60 < (new Date().getTime() / 1000 | 0)) {
+                var url = this.makeURL();
+                this.httpRequest(url, function (error, response, responseBody) {
+                    if (error) {
+                        this.log("HTTP get weather function failed: %s", error.message);
+                        callback(error);
+                    } else {
+                        try {
+                            this.setCacheObj(responseBody);
+                            var value = this.returnMaincondFromCache();
+                            callback(null, value);
+                        } catch (error2) {
+                            this.log("Getting Main condition failed: %s", error2, response, responseBody);
+                            callback(error2);
+                        }
+                    }
+                }.bind(this));
+            } else {
+                try {
+                    var value = this.returnMaincondFromCache();
+                    this.log("Returning cached data", value);
+                    callback(null, value);
+                } catch (error) {
+                    this.log("Getting Main condition failed: %s", error);
+                    callback(error);
+                }
+            }
+        },
+
         getStateSun: function (callback) {
             // Only fetch new data once per minute
             if (!this.cachedWeatherObj || this.pollingInterval > 0 || this.lastupdate + 60 < (new Date().getTime() / 1000 | 0)) {
@@ -302,6 +341,15 @@ WeatherAccessory.prototype =
             return value;
         },
 
+        returnMaincondFromCache: function () {
+            var value;
+            if (this.cachedWeatherObj && this.cachedWeatherObj["weather"]) {
+                value = parseFloat(this.cachedWeatherObj["weather"]["main"]);
+                this.log("Fetched main value " + value + "% of type '" + this.type + "' for accessory " + this.name);
+            }
+            return value;
+        },
+
         returnCloudinessFromCache: function () {
             var value;
             if (this.cachedWeatherObj && this.cachedWeatherObj["clouds"]) {
@@ -332,7 +380,7 @@ WeatherAccessory.prototype =
 
         makeURL: function () {
             var url = "http://api.openweathermap.org/data/2.5/";
-            if (this.type === "current" || this.type === "clouds" || this.type === "sun") {
+            if (this.type === "current" || this.type === "clouds" || this.type === "weather") || this.type === "sun") {
                 url += "weather";
             } else {
                 // Min-/Max-sensors have different endpoint
@@ -411,6 +459,13 @@ WeatherAccessory.prototype =
                     .on("get", this.getStateClouds.bind(this));
 
                 services = [informationService, humidityService];
+            } else if (this.type === "weather") {
+                humidityService = new Service.HumiditySensor(this.name);
+                humidityService
+                    .getCharacteristic(Characteristic.CurrentRelativeHumidity)
+                    .on("get", this.getStateMaincond.bind(this));
+
+                services = [informationService, humidityService];
             } else if (this.type === "sun") {
                 humidityService = new Service.HumiditySensor(this.name);
                 humidityService
@@ -444,4 +499,3 @@ WeatherAccessory.prototype =
         }
 
     };
-
