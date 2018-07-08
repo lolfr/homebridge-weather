@@ -93,8 +93,8 @@ WeatherAccessory.prototype =
                 }.bind(this));
             }
 
-            if (this.type === "weather") {
-                this.getStateWeather(function (error, value) {
+            if (this.type === "mainweather") {
+                this.getStateMainweather(function (error, value) {
                     if (!error && value != null) {
                         humidityService.setCharacteristic(Characteristic.CurrentRelativeHumidity, value);
                     }
@@ -213,7 +213,7 @@ WeatherAccessory.prototype =
             }
         },
 
-        getStateMaincond: function (callback) {
+        getStateMainweather: function (callback) {
             // Only fetch new data once per minute
             if (!this.cachedWeatherObj || this.pollingInterval > 0 || this.lastupdate + 60 < (new Date().getTime() / 1000 | 0)) {
                 var url = this.makeURL();
@@ -341,9 +341,9 @@ WeatherAccessory.prototype =
             return value;
         },
 
-        returnMaincondFromCache: function () {
+        returnMainweatherFromCache: function () {
             var value;
-            if (this.cachedWeatherObj && this.cachedWeatherObj["weather"]) {
+            if (this.cachedWeatherObj && this.cachedWeatherObj["mainweather"]) {
                 value = parseFloat(this.cachedWeatherObj["weather"]["main"]);
                 this.log("Fetched main value " + value + "% of type '" + this.type + "' for accessory " + this.name);
             }
@@ -380,7 +380,7 @@ WeatherAccessory.prototype =
 
         makeURL: function () {
             var url = "http://api.openweathermap.org/data/2.5/";
-            if (this.type === "current" || this.type === "clouds" || this.type === "weather") || this.type === "sun") {
+            if (this.type === "current" || this.type === "clouds" || this.type === "mainweather") || this.type === "sun") {
                 url += "weather";
             } else {
                 // Min-/Max-sensors have different endpoint
@@ -459,7 +459,7 @@ WeatherAccessory.prototype =
                     .on("get", this.getStateClouds.bind(this));
 
                 services = [informationService, humidityService];
-            } else if (this.type === "weather") {
+            } else if (this.type === "mainweather") {
                 humidityService = new Service.HumiditySensor(this.name);
                 humidityService
                     .getCharacteristic(Characteristic.CurrentRelativeHumidity)
