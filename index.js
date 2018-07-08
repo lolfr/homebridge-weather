@@ -11,7 +11,7 @@ module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
     FakeGatoHistoryService = require("fakegato-history")(homebridge);
-    homebridge.registerAccessory("homebridge-weather", "Weather", WeatherAccessory);
+    homebridge.registerAccessory("homebridge-weather-lolfr", "Weather", WeatherAccessory);
 };
 
 function WeatherAccessory(log, config) {
