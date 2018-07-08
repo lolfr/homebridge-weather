@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-weather",
+  "name": "homebridge-weather-lolfr",
   "version": "1.9.1",
   "description": "Homebridge plugin for displaying the weather from openweathermap.org",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/werthdavid/homebridge-weather.git"
+    "url": "git+https://github.com/werthdavid/homebridge-weather-lolfr.git"
   },
   "engines": {
     "homebridge": ">=0.2.0",
